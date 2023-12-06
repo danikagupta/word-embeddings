@@ -1,51 +1,55 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import streamlit as st
-from streamlit.logger import get_logger
 
-LOGGER = get_logger(__name__)
+import pandas as pd
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+import matplotlib.pyplot as plt
+import seaborn as sns
+import inspect
+import textwrap
 
+st.set_page_config(layout="wide")
 
-def run():
-    st.set_page_config(
-        page_title="Hello",
-        page_icon="👋",
-    )
+def embedding_heatmap_demo() -> None:
+    # Initialize the model
+    model = SentenceTransformer('all-MiniLM-L6-v2')
 
-    st.write("# Welcome to Streamlit! 👋")
+    txt1="The quick brown fox jumps over the lazy dog"
+    txt2="Where there is smoke, there is fire."
+    txt3="An apple a day keeps the doctor away."
+    txt4="Eat fruits daily to not see medical professional"
 
-    st.sidebar.success("Select a demo above.")
+    st.markdown("# Enter four text segments")
+    txt1=st.text_input(value=txt1,label="Text 1",label_visibility="collapsed")
+    txt2=st.text_input(value=txt2,label="Text 2",label_visibility="collapsed")
+    txt3=st.text_input(value=txt3,label="Text 3",label_visibility="collapsed")
+    txt4=st.text_input(value=txt4,label="Text 4",label_visibility="collapsed")
 
-    st.markdown(
-        """
-        Streamlit is an open-source app framework built specifically for
-        Machine Learning and Data Science projects.
-        **👈 Select a demo from the sidebar** to see some examples
-        of what Streamlit can do!
-        ### Want to learn more?
-        - Check out [streamlit.io](https://streamlit.io)
-        - Jump into our [documentation](https://docs.streamlit.io)
-        - Ask a question in our [community
-          forums](https://discuss.streamlit.io)
-        ### See more complex demos
-        - Use a neural net to [analyze the Udacity Self-driving Car Image
-          Dataset](https://github.com/streamlit/demo-self-driving)
-        - Explore a [New York City rideshare dataset](https://github.com/streamlit/demo-uber-nyc-pickups)
-    """
-    )
+    texts = [txt1,txt2,txt3,txt4]
+    embeddings = model.encode(texts)
+    similarity_matrix = cosine_similarity(embeddings)
 
+    #Plot heat map
+    sns.set_context('talk')  
+    plt.figure(figsize=(12, 10))  
+    truncated_texts = [text[:20] for text in texts]
+    sns.heatmap(similarity_matrix, annot=True, cmap='coolwarm', xticklabels=truncated_texts, 
+                yticklabels=truncated_texts,annot_kws={"size": 18, "weight": "bold"})
+    plt.xticks(rotation=45, ha='right', fontsize=16)
+    plt.yticks(fontsize=16)
+    plt.title("Cosine Similarity Heatmap")
+    #plt.show()
+    st.pyplot(plt)
 
-if __name__ == "__main__":
-    run()
+    # Show embeddings
+    df = pd.DataFrame(embeddings)
+    df.insert(0, "Text", texts)
+    with st.expander("## See embeddings"):
+        st.dataframe(df,hide_index=True)
+
+    # Show code
+    with st.expander("## See app code"):
+        sourcelines, _ = inspect.getsourcelines(embedding_heatmap_demo)
+        st.code(textwrap.dedent("".join(sourcelines[1:])))
+
+embedding_heatmap_demo()

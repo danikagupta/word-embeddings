@@ -7,3 +7,6 @@ sentence-transformers
 scikit-learn
 matplotlib
 seaborn
+inspect
+textwrap
+pandas
