@@ -14,16 +14,17 @@ def embedding_heatmap_demo() -> None:
     # Initialize the model
     model = SentenceTransformer('all-MiniLM-L6-v2')
 
-    txt1="The quick brown fox jumps over the lazy dog"
+    txt1="The quick brown fox jumps over the lazy dog."
     txt2="Where there is smoke, there is fire."
     txt3="An apple a day keeps the doctor away."
-    txt4="Eat fruits daily to not see medical professional"
+    txt4="Eat fruits daily to not see medical professional."
 
-    st.markdown("# Enter four text segments")
-    txt1=st.text_input(value=txt1,label="Text 1",label_visibility="collapsed")
-    txt2=st.text_input(value=txt2,label="Text 2",label_visibility="collapsed")
-    txt3=st.text_input(value=txt3,label="Text 3",label_visibility="collapsed")
-    txt4=st.text_input(value=txt4,label="Text 4",label_visibility="collapsed")
+    st.markdown("# Provide up to four text segments to compare")
+    col1,col2,col3,col4 = st.columns(4)
+    txt1=col1.text_area(value=txt1,label="Text 1",label_visibility="collapsed")
+    txt2=col2.text_area(value=txt2,label="Text 2",label_visibility="collapsed")
+    txt3=col3.text_area(value=txt3,label="Text 3",label_visibility="collapsed")
+    txt4=col4.text_area(value=txt4,label="Text 4",label_visibility="collapsed")
 
     texts = [txt1,txt2,txt3,txt4]
     embeddings = model.encode(texts)
@@ -31,7 +32,7 @@ def embedding_heatmap_demo() -> None:
 
     #Plot heat map
     sns.set_context('talk')  
-    plt.figure(figsize=(12, 10))  
+    plt.figure(figsize=(8, 6))  
     truncated_texts = [text[:20] for text in texts]
     sns.heatmap(similarity_matrix, annot=True, cmap='coolwarm', xticklabels=truncated_texts, 
                 yticklabels=truncated_texts,annot_kws={"size": 18, "weight": "bold"})
